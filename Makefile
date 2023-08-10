@@ -1,6 +1,7 @@
 GO = go
 GOBIN = $(CURDIR)/build
 GOBUILD = $(GO) build
+GOTEST = $(GO) test ./...
 
 ## build: builds the binary
 build:
@@ -12,6 +13,10 @@ build:
 clean:
 	go clean -cache
 	rm -rf ./build
+
+## test: run unit tests
+test:
+	$(GOTEST) --timeout 100s
 
 ## help: print commands help
 help:	Makefile
