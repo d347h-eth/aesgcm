@@ -19,21 +19,48 @@ func NewAESGCM() *AESGCM {
 }
 
 // Encrypt performs the encryption and returns ciphertext
-func (aes AESGCM) Encrypt(password []byte, salt []byte, derivationIter int, derivationLength int, nonce []byte, plaintext []byte) ([]byte, error) {
+func (aes AESGCM) Encrypt(
+	password []byte,
+	salt []byte,
+	derivationIter int,
+	derivationLength int,
+	nonce []byte,
+	plaintext []byte,
+) ([]byte, error) {
 	key := deriveKey(password, salt, derivationIter, derivationLength)
 	aesgcm, err := initCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt: %w", err)
 	}
+	if len(nonce) != aesgcm.NonceSize() {
+		return nil, fmt.Errorf(
+			"incorrect nonce size: %d, must be %d",
+			len(nonce),
+			aesgcm.NonceSize(),
+		)
+	}
 	return aesgcm.Seal(nil, nonce, plaintext, nil), nil
 }
 
 // Decrypt performs the decryption and returns the plaintext
-func (aes AESGCM) Decrypt(password []byte, salt []byte, derivationIter int, derivationLength int, nonce []byte, ciphertext []byte) ([]byte, error) {
+func (aes AESGCM) Decrypt(password []byte,
+	salt []byte,
+	derivationIter int,
+	derivationLength int,
+	nonce []byte,
+	ciphertext []byte,
+) ([]byte, error) {
 	key := deriveKey(password, salt, derivationIter, derivationLength)
 	aesgcm, err := initCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decrypt %w", err)
+	}
+	if len(nonce) != aesgcm.NonceSize() {
+		return nil, fmt.Errorf(
+			"incorrect nonce size: %d, must be %d",
+			len(nonce),
+			aesgcm.NonceSize(),
+		)
 	}
 	return aesgcm.Open(nil, nonce, ciphertext, nil)
 }
